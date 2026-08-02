@@ -1,5 +1,7 @@
 This is the repository for **Lean 4**. Specifically , if there is a way to hack RH into it, the term from Mathlib, to pass Nanoda (thats the primary target , it should reveal the others somewhat) , this repo aims to do everything possible to find it, obfuscate and make it as realistic as possible, and post it under a pseudonym. In order to white-hat "soundness pen test" Lean 4 and community processes.
 
+As such, this is just a dummy clone to observe and sync with, and study. If you read this..well..thats hilarious.
+
 # About
 
 - [Quickstart](https://lean-lang.org/install/)
