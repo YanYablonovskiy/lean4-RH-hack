@@ -16,6 +16,10 @@ This module provides the implementation of the `bv_decide` frontend itself.
 -/
 namespace Lean.Meta.Tactic.BVDecide
 
+public def TacticContext.preProcessContext (ctx : TacticContext) : Normalize.PreProcessContext where
+  config := ctx.config
+  restrictedTypes := ctx.restrictedTypes
+
 def bvUnsat (g : MVarId) (hypotheses : Array Normalize.Hyp) (ctx : TacticContext) :
     Sym.SymM (Except CounterExample LratCert) :=
   M.run (hypotheses := hypotheses) do
@@ -35,20 +39,19 @@ public structure Result where
 Try to close `g` using a bitblaster. Return either a `CounterExample` if one is found or a `Result`
 if `g` is proven.
 -/
-public def bvDecide' (g : MVarId) (ctx : TacticContext) : MetaM (Except CounterExample Result) := do
-  Sym.SymM.run do
-    Normalize.PreProcessM.run' ctx.config g do
-      let solved ← Normalize.bvNormalize
-      if solved then return .ok ⟨none⟩
+public def bvDecide' (g : MVarId) (ctx : TacticContext) : Sym.SymM (Except CounterExample Result) := do
+  Normalize.PreProcessM.run' ctx.preProcessContext g do
+    let solved ← Normalize.bvNormalize
+    if solved then return .ok ⟨none⟩
 
-      match ← bvUnsat (← Normalize.PreProcessM.getGoal) (← Normalize.PreProcessM.getHyps) ctx with
-      | .ok lratCert => return .ok ⟨some lratCert⟩
-      | .error counterExample => return .error counterExample
+    match ← bvUnsat (← Normalize.PreProcessM.getGoal) (← Normalize.PreProcessM.getHyps) ctx with
+    | .ok lratCert => return .ok ⟨some lratCert⟩
+    | .error counterExample => return .error counterExample
 
 /--
 Call `bvDecide'` and throw a pretty error if a counter example ends up being produced.
 -/
-public def bvDecide (g : MVarId) (ctx : TacticContext) : MetaM Result := do
+public def bvDecide (g : MVarId) (ctx : TacticContext) : Sym.SymM Result := do
   match ← bvDecide' g ctx with
   | .ok result => return result
   | .error counterExample =>
